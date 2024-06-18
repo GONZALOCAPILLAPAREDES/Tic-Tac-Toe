@@ -1,5 +1,7 @@
 from config import matches_collection
-import uuid
+import random
+import string
+import logging
 
 '''
 function used to start a new match on the database
@@ -9,16 +11,18 @@ function used to start a new match on the database
 '''
 def createMatch():
     document={
-        "_id": uuid.uuid4(),
+        "_id": ''.join([random.choice(string.ascii_letters + string.digits) for n in range(32)]),
         "board":[[-1,-1,-1], [-1,-1,-1], [-1,-1,-1]],
         "turn": "X"
     }
+
     try: 
 
         result = matches_collection.insert_one(document)
 
-        if (result.inserted_id == document._id):
+        if (result.inserted_id == document["_id"]):
             return result.inserted_id
     
     except Exception as e:
+        logging.error("Failed doc creation", e)
         raise Exception("Unable to add the new document (match) to the collection, due to the following error: ", e)
