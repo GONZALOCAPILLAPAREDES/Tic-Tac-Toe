@@ -1,0 +1,36 @@
+version: '3.7'
+
+services:
+
+  mongo:
+    image: mongo:latest
+    restart: always
+    container_name: mongo-tictactoe
+    hostname: host-mongo
+    volumes:
+      - ./db-data:/data/db
+      - ./db-data/log:/var/log/mongodb/
+    ports:
+      - "27017:27017"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "6"
+        tag: "{{.Name}}"
+  
+  web-service1:
+    build: ./web-service/
+    image: web-service
+    container_name: "web-service1"
+    restart: always
+    ports:
+      - 5000:5000
+    volumes:
+      - "./web-service/src:/app/src"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "6"
+        tag: "{{.Name}}"
