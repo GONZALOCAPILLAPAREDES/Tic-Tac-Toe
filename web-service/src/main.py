@@ -1,5 +1,6 @@
 from flask import request, jsonify
 from config import app, matches_collection
+from models import createMatch
 
 @app.route("/hello")
 def hello_world():
