@@ -34,6 +34,17 @@ def createMatch():
             app.logger.error(f"{type(exception).__name__} - {traceback.format_exc()}")
         raise APIError(500,"Something went wrong")
 
+'''
+function used to check a match status on the database
+
+Parameters: 
+    matchId: identificator of the match
+
+Returns:
+    _id: corresponds to the future matchId
+    board: 2-D array used to represnt the tic-tact-toe board
+    turn: represents the user (X or O), starting with the convention that X plays first
+'''
 def getMatchStatus(matchId):
     try: 
 
