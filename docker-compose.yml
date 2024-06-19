@@ -5,7 +5,7 @@ services:
   mongo:
     image: mongo:latest
     restart: always
-    container_name: mongo-tictactoe
+    container_name: mongo-tictactoe1
     hostname: host-mongo
     volumes:
       - ./db-data:/data/db
