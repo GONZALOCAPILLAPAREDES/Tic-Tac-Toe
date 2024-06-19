@@ -33,3 +33,20 @@ def createMatch():
         if app.debug:
             app.logger.error(f"{type(exception).__name__} - {traceback.format_exc()}")
         raise APIError(500,"Something went wrong")
+
+def getMatchStatus(matchId):
+    try: 
+
+        app.logger.info("[DB] Reading match status with id: "+ matchId)
+
+        result = matches_collection.find_one({"_id":matchId})
+
+        app.logger.info(f"[DB] Result find_one: {result}")
+
+        return result
+
+    except Exception as exception:
+        app.logger.error(f"{type(exception).__name__} - {exception}")
+        if app.debug:
+            app.logger.error(f"{type(exception).__name__} - {traceback.format_exc()}")
+        raise APIError(500,"Something went wrong")
