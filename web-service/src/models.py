@@ -1,7 +1,10 @@
 from config import matches_collection
 import random
 import string
-import logging
+from config import app
+from utils.exceptions import APIError
+import traceback
+
 
 '''
 function used to start a new match on the database
@@ -18,11 +21,15 @@ def createMatch():
 
     try: 
 
+        app.logger.info("[DB] Creating new match with id: "+ document["_id"])
+
         result = matches_collection.insert_one(document)
 
         if (result.inserted_id == document["_id"]):
             return result.inserted_id
     
-    except Exception as e:
-        logging.error("Failed doc creation", e)
-        raise Exception("Unable to add the new document (match) to the collection, due to the following error: ", e)
+    except Exception as exception:
+        app.logger.error(f"{type(exception).__name__} - {exception}")
+        if app.debug:
+            app.logger.error(f"{type(exception).__name__} - {traceback.format_exc()}")
+        raise APIError(500,"Something went wrong")
