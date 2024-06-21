@@ -52,7 +52,7 @@ def post_move():
         raise APIError(code=400, description="Bad Request")
 
 
-    if not isinstance(x, int) or not isinstance(y, int):
+    if (not isinstance(x, int) or not isinstance(y, int)) or not (x in range(3) and y in range(3)):
         app.logger.error("[API] POST /move missing correct x or y")
         raise APIError(code=400, description="Bad Request")
     
