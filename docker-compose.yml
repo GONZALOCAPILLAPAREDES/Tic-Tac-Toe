@@ -2,6 +2,24 @@ version: '3.7'
 
 services:
 
+  react-app1:
+    build:
+      context: ./react-app
+    image: react-app
+    container_name: react-app1
+    restart: unless-stopped
+    ports:
+      - 8083:8083
+    volumes:
+      - ./react-app/src:/usr/react-app/src
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "6"
+        tag: "{{.Name}}"
+    entrypoint: npm run preview
+
   mongo:
     image: mongo:latest
     restart: always
@@ -11,7 +29,7 @@ services:
       - ./db-data:/data/db
       - ./db-data/log:/var/log/mongodb/
     ports:
-      - "27017:27017"
+      - 27017:27017
     logging:
       driver: "json-file"
       options:
