@@ -3,16 +3,16 @@ import axios from "axios";
 
 
 //Function to handle the HTTP requests with RECAP external API
-export const httpHandler = async (action: string, body?: JSON) => {
+export const httpHandler = async (action: string, body?: any) => {
     if (typeof action !== "string") {
 
         console.log("ERROR", `[[HTTPREQ_RECAP_ERROR] ]Wrong parameters at HTTP request, url:${action}`)
 
     }
     try {
-        if(body){
+        if(body && action === 'move'){
             return axios({
-                method:action === "status" ? "get" : "post",
+                method:"post",
                 maxBodyLength: Infinity,
                 url: `http://127.0.0.1:5000/${action}`,
                 headers: {
@@ -22,7 +22,17 @@ export const httpHandler = async (action: string, body?: JSON) => {
                 responseType: 'json',
             }).then((response) => {return response});
 
+        }else if (action === 'status' && body){
 
+            return axios({
+                method:"get",
+                maxBodyLength: Infinity,
+                url: `http://127.0.0.1:5000/${action}?matchId=${body['matchId']}`,
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                responseType: 'json',
+            }).then((response) => {return response});
 
         }else{
             return axios({

@@ -119,9 +119,43 @@ function Game() {
   }
 
 
+  const apiMatchStatus = async () => {
+
+    try{
+
+      let body2: any = {
+        "matchId":currentMatch
+      }
+
+      console.log('/status body:', body2)
+
+      const response = await httpHandler("status", body2);
+      if (response.status === 200) {
+
+        console.log("[/status] Status:", response.status);
+        console.log("[/status] Match state:", response?.data);
+
+        return response?.data;
+
+      } else if (response.status === 444) {
+        resetBoard()
+        console.error("[/status] Status", response.status, "Message:", response.data);
+        return false;
+
+      }
+
+    }catch(err){
+      resetBoard()
+      console.error("[/status] Status", (err as any).response.status, "Message:", (err as any).response.data);
+    }
+  }
+
+
   const resetBoard = () => {
+    console.log('[resetBoard] Done!!')
     setCurrentMatch(INITIAL_MATCH_ID)
     setGameState(INITIAL_STATE)
+    setCurrentPlayer('X')
   }
 
   const changePlayer = () => {
@@ -151,64 +185,89 @@ function Game() {
     let roundWon = false; 
 
     console.log('BOARD Status', gameState)
+    if (currentMatch != ""){
+      apiMatchStatus().then((match?) => {
 
-    for (let i = 0; i < WINNING_COMBOS.length; i++) {
-      const winCombo = WINNING_COMBOS[i];
+        console.log('Is there a winner?', match.current_result.winner);
 
-      let a = gameState[winCombo[0]];
-      let b = gameState[winCombo[1]];
-      let c = gameState[winCombo[2]];
+        if(match.current_result.winner != ""){
+          roundWon = true;
+        }
 
-      if ([a, b, c].includes("")) {
-        continue;
-      }
+        if(roundWon){
+          setTimeout(()=> {
+            window.alert(`Congrats player ${match.current_result.winner}, you won!!`);
+            resetBoard();
+            return;
+          }, 450)
+        }
+    
+        if(!gameState.includes("")){
+          setTimeout(()=> {
+            window.alert(`Draw here!!`);
+            resetBoard()
+            return;
+          }, 450)
+        }
 
-      if (a === b && b === c) {
-        roundWon = true;
-        break;
-      }
-    }
-
-    if(roundWon){
-      setTimeout(()=> {
-        window.alert(`Congrats player ${currentPlayer}, you won!!`);
-        resetBoard();
+      }).catch((err: Error) => {
+      
+        console.error('[checkWinner] Something went wrong when /status', err)
         return;
-      }, 450)
-    }
 
-    if(!gameState.includes("")){
-      setTimeout(()=> {
-        window.alert(`Draw here!!`);
-        resetBoard()
-        return;
-      }, 450)
+      });
+
     }
     
   }
 
   const handleSquareClicked = (event: any) => {
-    console.log("CLICKED", event.target.getAttribute("data-cell-index"));
     const cellIndex = Number(event.target.getAttribute("data-cell-index"))
 
-    const currentValue = gameState[cellIndex];
+    console.log('CHECKING STATUS OF MATCH: ', currentMatch);
 
-    if (currentValue) {
-      return;
-    }
+    apiMatchStatus().then((match?) => {
 
-    apiMatchMove(cellIndex).then( (updateOK) =>{
+      console.log('Board position value:', match.board[coordinatesDict[cellIndex]['x']][coordinatesDict[cellIndex]['y']])
 
-      if (updateOK){
-        const newValues = [...gameState];
-        newValues[cellIndex] = currentPlayer;
-        setGameState(newValues);
-        changePlayer();
-      }else{
-        console.error('[handleSquareClicked] Failed beacuse of DB updation')
+      if (match.turn != currentPlayer || match.board[coordinatesDict[cellIndex]['x']][coordinatesDict[cellIndex]['y']] != -1 || match.current_result.status != "on-going"){
+
+        console.error('[handleSquareClicked] Trying to do a forbiden move')
+
+        setTimeout(()=> {
+          window.alert(`Follow the rules!!`);
+          return;
+        }, 450)
+
+      }else {
+
+        apiMatchMove(cellIndex).then( (updateOK) =>{
+
+          if (updateOK){
+            const newValues = [...gameState];
+            newValues[cellIndex] = currentPlayer;
+            setGameState(newValues);
+            changePlayer();
+    
+          }else{
+            console.error('[handleSquareClicked] Failed because of DB updation')
+          }
+    
+        }).catch((err: Error) => {
+    
+          console.error('[handleSquareClicked] Something went wrong when /move', err)
+          return;
+    
+        });
+
+
       }
+    }).catch((err: Error) => {
 
-    })
+      console.error('[handleSquareClicked] Something went wrong when /status', err)
+      return;
+
+    });
 
 
   }

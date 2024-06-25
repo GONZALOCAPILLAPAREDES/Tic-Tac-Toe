@@ -21,7 +21,7 @@ def post_create():
 def get_status():
     app.logger.info("[API] New GET /status request")
 
-    matchId = request.json.get("matchId")
+    matchId = request.args.get("matchId")
 
     if not matchId or not isinstance(matchId, str):
         app.logger.error("[API] GET /status missing correct matchId")
