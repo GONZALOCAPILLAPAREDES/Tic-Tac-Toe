@@ -28,4 +28,5 @@ function Square({ index, onClick, player }: Props) {
   
 }
 
+
 export default Square
