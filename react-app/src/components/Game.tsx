@@ -3,16 +3,6 @@ import Square from "./Square";
 import {httpHandler} from "../utils/http-handler"
 
 const INITIAL_STATE = ["", "", "", "", "", "", "", "", ""]
-const WINNING_COMBOS= [
-  [0, 1, 2],
-  [3, 4, 5],
-  [6, 7, 8],
-  [0, 3, 6],
-  [1, 4, 7],
-  [2, 5, 8],
-  [0, 4, 8],
-  [2, 4, 6],
-];
 
 const coordinatesDict: any = {
   0:{
@@ -54,15 +44,25 @@ const coordinatesDict: any = {
   
 }
 
+
 const INITIAL_MATCH_ID=""
 
 function Game() {
+
+  /** useStates initialization
+   *  useState(INITIAL_STATE) is for keeping the board status during a match
+   *  useState("X") is for keeping the turn status during a match 
+   *  useState(INITIAL_MATCH_ID) is for keeping the matchId during a match
+   * **/
   const [gameState, setGameState] = useState(INITIAL_STATE)
   const [currentPlayer, setCurrentPlayer] = useState("X")
   const [currentMatch, setCurrentMatch] = useState(INITIAL_MATCH_ID)
 
 
-
+  /**
+   * function to communicate with the back-end for creating a new match  via API
+   * @returns matchId of the new tictactoe match
+   */
   const apiMatchCreate = async () => {
 
     try{
@@ -87,7 +87,10 @@ function Game() {
     }
   }
 
-
+  /**
+   * function to communicate with the back-end for updating a existing match via API
+   * @returns true/false depending if the movement wa successful
+   */
   const apiMatchMove = async (cellClicked: number) => {
 
     try{
@@ -102,7 +105,6 @@ function Game() {
       if (response.status === 200) {
 
         console.log("[/move] Status:", response.status);
-        //console.log("[/move] MatchId:", response?.data);
         return true;
 
       } else if (response.status === 444) {
@@ -118,7 +120,10 @@ function Game() {
     }
   }
 
-
+  /**
+   * function to communicate with the back-end for checking status of a existing match via API
+   * @returns the tictactoe match object in JSON format
+   */
   const apiMatchStatus = async () => {
 
     try{
@@ -150,19 +155,34 @@ function Game() {
     }
   }
 
-
+  /**
+   * function to set game parameters to default values
+   * @returns void
+   */
   const resetBoard = () => {
-    console.log('[resetBoard] Done!!')
-    setCurrentMatch(INITIAL_MATCH_ID)
-    setGameState(INITIAL_STATE)
-    setCurrentPlayer('X')
+    setCurrentMatch(INITIAL_MATCH_ID);
+    setGameState(INITIAL_STATE);
+    setCurrentPlayer('X');
+    console.log('[resetBoard] Done!!');
   }
 
+
+
+  /**
+   * function to change players  turn
+   * @returns void
+   */
   const changePlayer = () => {
     setCurrentPlayer(currentPlayer === "X" ? "O" : "X");
+    console.log('[changePlayer] Done!!');
+
   };
 
 
+
+  /**
+   * for detecting when the currentMatch has changed  
+   */
   useEffect(()=> {
     if(currentMatch === "")
        apiMatchCreate().then((newMatchId) => {
@@ -174,18 +194,27 @@ function Game() {
     }, [currentMatch])
 
 
+    /**
+   * for checking winner everytime the player turn changes
+   */
   useEffect(()=> {
     console.log('CHECKING WINNER FOR MATCH: ', currentMatch)
     checkWinner()
     }, [currentPlayer])
 
-
+  /**
+   * function to handle the game status for every turn
+   */
   const checkWinner = () => {
 
     let roundWon = false; 
 
     console.log('BOARD Status', gameState)
+
+    // if we are currently playing
     if (currentMatch != ""){
+
+      // we check if the match has already a winner
       apiMatchStatus().then((match?) => {
 
         console.log('Is there a winner?', match.current_result.winner);
@@ -221,14 +250,16 @@ function Game() {
     
   }
 
+    /**
+   * function to handle the square component onClick
+   */
   const handleSquareClicked = (event: any) => {
     const cellIndex = Number(event.target.getAttribute("data-cell-index"))
 
     console.log('CHECKING STATUS OF MATCH: ', currentMatch);
 
+    // checking if the game status allows to continue playing
     apiMatchStatus().then((match?) => {
-
-      console.log('Board position value:', match.board[coordinatesDict[cellIndex]['x']][coordinatesDict[cellIndex]['y']])
 
       if (match.turn != currentPlayer || match.board[coordinatesDict[cellIndex]['x']][coordinatesDict[cellIndex]['y']] != -1 || match.current_result.status != "on-going"){
 
@@ -241,6 +272,7 @@ function Game() {
 
       }else {
 
+        // if the move is correct
         apiMatchMove(cellIndex).then( (updateOK) =>{
 
           if (updateOK){
@@ -271,8 +303,6 @@ function Game() {
 
 
   }
-
-
 
   return (
   <div className="h-full p-8 text-slate-800 bg-gradient-to-r from-zinc-800 to-zinc-900">
