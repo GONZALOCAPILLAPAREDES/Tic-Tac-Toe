@@ -14,7 +14,7 @@ const WINNING_COMBOS= [
   [2, 4, 6],
 ];
 
-const coordinatesDict = {
+const coordinatesDict: any = {
   0:{
     'x':0, 
     'y':0
@@ -58,7 +58,7 @@ const INITIAL_MATCH_ID=""
 
 function Game() {
   const [gameState, setGameState] = useState(INITIAL_STATE)
-  const [currentPlayer, setCurrentPlayer] = useState("O")
+  const [currentPlayer, setCurrentPlayer] = useState("X")
   const [currentMatch, setCurrentMatch] = useState(INITIAL_MATCH_ID)
 
 
@@ -70,22 +70,54 @@ function Game() {
       const response = await httpHandler("create");
       if (response.status === 200) {
 
-        console.log("Status:", response.status);
-        console.log("MatchId:", response?.data);
+        console.log("[/create] Status:", response.status);
+        console.log("[/create] MatchId:", response?.data);
 
-        setCurrentMatch(response?.data.matchId);
+        return response?.data.matchId;
 
       } else if (response.status === 444) {
         resetBoard()
-        console.error("Status", response.status, "Message:", response.data);
+        console.error("[/create] Status", response.status, "Message:", response.data);
 
       }
 
     }catch(err){
       resetBoard()
-      console.error("Status", (err as any).response.status, "Message:", (err as any).response.data);
+      console.error("[/create] Status", (err as any).response.status, "Message:", (err as any).response.data);
     }
   }
+
+
+  const apiMatchMove = async (cellClicked: number) => {
+
+    try{
+
+      const body: any = {
+        "matchId": currentMatch,
+        "playerId": currentPlayer,
+        "square": coordinatesDict[cellClicked]
+      }
+
+      const response = await httpHandler("move", body);
+      if (response.status === 200) {
+
+        console.log("[/move] Status:", response.status);
+        //console.log("[/move] MatchId:", response?.data);
+        return true;
+
+      } else if (response.status === 444) {
+        resetBoard()
+        console.error("[/move] Status", response.status, "Message:", response.data);
+        return false;
+
+      }
+
+    }catch(err){
+      resetBoard()
+      console.error("[/move] Status", (err as any).response.status, "Message:", (err as any).response.data);
+    }
+  }
+
 
   const resetBoard = () => {
     setCurrentMatch(INITIAL_MATCH_ID)
@@ -96,20 +128,29 @@ function Game() {
     setCurrentPlayer(currentPlayer === "X" ? "O" : "X");
   };
 
+
   useEffect(()=> {
-    if (currentMatch === ""){
-      apiMatchCreate()
-    }
-    console.log('CURRENT_MATCH: ', currentMatch)
+    if(currentMatch === "")
+       apiMatchCreate().then((newMatchId) => {
+        setCurrentMatch(newMatchId);
+        console.log('CURRENT_MATCH: ', newMatchId)
+
+      })
+
+    }, [currentMatch])
+
+
+  useEffect(()=> {
+    console.log('CHECKING WINNER FOR MATCH: ', currentMatch)
     checkWinner()
-    }, [gameState])
+    }, [currentPlayer])
 
 
   const checkWinner = () => {
 
     let roundWon = false; 
 
-    console.log('BOARD', gameState)
+    console.log('BOARD Status', gameState)
 
     for (let i = 0; i < WINNING_COMBOS.length; i++) {
       const winCombo = WINNING_COMBOS[i];
@@ -143,8 +184,6 @@ function Game() {
         return;
       }, 450)
     }
-
-    changePlayer();
     
   }
 
@@ -153,15 +192,25 @@ function Game() {
     const cellIndex = Number(event.target.getAttribute("data-cell-index"))
 
     const currentValue = gameState[cellIndex];
-    console.log('CURRENT', currentValue)
 
     if (currentValue) {
       return;
     }
 
-    const newValues = [...gameState];
-    newValues[cellIndex] = currentPlayer;
-    setGameState(newValues);
+    apiMatchMove(cellIndex).then( (updateOK) =>{
+
+      if (updateOK){
+        const newValues = [...gameState];
+        newValues[cellIndex] = currentPlayer;
+        setGameState(newValues);
+        changePlayer();
+      }else{
+        console.error('[handleSquareClicked] Failed beacuse of DB updation')
+      }
+
+    })
+
+
   }
 
 
