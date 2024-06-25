@@ -198,7 +198,7 @@ function Game() {
    * for checking winner everytime the player turn changes
    */
   useEffect(()=> {
-    console.log('CHECKING WINNER FOR MATCH: ', currentMatch)
+    console.log('CHECKING SCORE FOR MATCH: ', currentMatch)
     checkWinner()
     }, [currentPlayer])
 
@@ -231,7 +231,8 @@ function Game() {
           }, 450)
         }
     
-        if(!gameState.includes("")){
+        // if the board is full and there is no winner --> draw
+        if(!gameState.includes("") && match.current_result.winner === ""){
           setTimeout(()=> {
             window.alert(`Draw here!!`);
             resetBoard()
