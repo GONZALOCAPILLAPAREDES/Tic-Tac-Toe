@@ -62,7 +62,8 @@ This what we commonly know as Back-end. It is basically a Python Flask applicati
    "matchId": <The new match's ID>
 }
 ``` 
-
+#### TO IMPROVE
+The unitary tests are missing due to lack of time, eventhough the endpoints functionalities have been tested with Postman. 
 ### MONGO-DB
 
 In order to implement the DB based persistence, it has been decided to use `MongoDB`, as we won´t need JOIN SQL operations and performance seems to be better for our case as it scales easily and operations are perfom quicker. This information is taken from:
@@ -100,7 +101,7 @@ If we wanted to check and see all the documents generated into the `matches` col
 
 ### REACT-APP
 A pretty simple front-end for the TicTacToe Game. It is designed to forbid actions against the game rules and following SOLID principles. Every match is kept on the DB. 
-
-As a future improvement, some refactorization for the `Game` component is necessary. 
+#### TO IMPROVE
+As a future improvement, some refactorization for the `Game` component is necessary. Also the unitary tests are missing due to lack of time. `Nightwatch.js` would be a nice option for this. 
 
 
